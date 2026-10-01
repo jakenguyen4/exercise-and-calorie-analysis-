@@ -20,7 +20,7 @@ Because the dataset is observational, the relationships identified in this proje
 
 This project uses the **Gym Members Exercise Dataset** by Valakhorasani, available on [Kaggle](https://www.kaggle.com/datasets/valakhorasani/gym-members-exercise-dataset). See the dataset page for its license and terms.
 
-The dataset contains 973 records and the following variables used in this project:
+The dataset contains 973 records and the following variables (not all were used in the analysis):
 
 - Age
 - Gender
