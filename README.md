@@ -1,221 +1,260 @@
 # Fitness Calorie Expenditure Analysis
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jakenguyen4/fitness-calorie-analysis/blob/main/python/fitness_calorie_analysis.ipynb)
-
 ## Project Overview
 
-This project investigates which factors are associated with calorie expenditure during exercise.
+This project investigates factors associated with calorie expenditure during exercise using SQL and Python.
 
-Using 973 records from the Gym Members Exercise Dataset, the analysis combines PostgreSQL and Python to explore relationships between calorie expenditure, session duration, average heart rate, age, weight, and workout type.
+The primary research question is:
 
-### Research Question
+> **Which factors are associated with higher calorie expenditure?**
 
-> Which factors are associated with higher calorie expenditure?
+The analysis combines PostgreSQL for data exploration and SQL-based analysis with Python for exploratory data analysis, multiple linear regression, and model diagnostics.
 
-Because the dataset is observational, this analysis identifies associations rather than causal effects.
+The goal is to demonstrate practical skills in SQL, exploratory data analysis, statistical modeling, data visualization, and interpretation of statistical results.
 
-> **Note on the data:** This dataset is publicly available on Kaggle and is not documented as real-world measurement data; it is widely believed to be synthetic. [TODO: verify on the dataset page and state plainly which it is.] The results below should therefore be read as a demonstration of analytical methods, not as evidence about real exercise physiology.
+Because the dataset is observational, the relationships identified in this project should be interpreted as associations rather than causal effects.
 
 ---
 
 ## Dataset
 
-- **Source:** Gym Members Exercise Dataset (Kaggle). [TODO: add author name, URL, and license from the dataset page.]
-- **Size:** 973 rows. [TODO: confirm whether each row is one gym member with a single recorded session, or multiple sessions per member. This README refers to rows as "records" until confirmed.]
-- **Columns used:** `Age`, `Weight_kg`, `Avg_BPM`, `Max_BPM`, `Session_Duration_Hours`, `Workout_Type`, `Calories_Burned`
-- **Columns not used:** [TODO: list the columns in the original dataset that were dropped (e.g., gender, experience level, body fat percentage) and why.]
-- **Variable selection:** `Max_BPM` was examined in the SQL analysis but excluded from the regression. [TODO: state your actual reason.] Note that excluding a variable only because its bivariate correlation is near zero is a weak criterion, since a variable can matter once others are controlled for.
+This project uses the **Gym Members Exercise Dataset** by Valakhorasani, available on [Kaggle](https://www.kaggle.com/datasets/valakhorasani/gym-members-exercise-dataset). See the dataset page for its license and terms.
+
+The dataset contains 973 records and the following variables used in this project:
+
+- Age
+- Gender
+- Weight (kg)
+- Height (m)
+- Max BPM
+- Avg BPM
+- Resting BPM
+- Session Duration (hours)
+- Calories Burned
+- Workout Type
+
+Data-quality checks found no missing values in the variables used for analysis.
+
+> **Note:** The dataset's provenance is not documented, and the unusually clean statistics (R² of 0.96, VIFs near 1) suggest caution. This project is intended as a demonstration of analytical methods rather than as evidence about real-world exercise physiology.
+
+### Variables Used in the Regression Model
+
+The final multiple linear regression model used:
+
+- Age
+- Weight (kg)
+- Avg BPM
+- Session Duration (hours)
+- Workout Type
+
+Gender, height, maximum BPM, and resting BPM were not included in the final regression model.
 
 ---
 
 ## Tools & Technologies
 
-- **PostgreSQL**: data exploration and SQL analysis
-- **Python**: statistical modeling and visualization
-- **Pandas**: data manipulation
-- **Matplotlib & Seaborn**: visualization
-- **Statsmodels**: multiple linear regression
-- **Scikit-learn**: model performance metrics and cross-validation
-- **Google Colab**: Python analysis environment
-- **GitHub**: project organization and documentation
+- **PostgreSQL**: Database storage and SQL analysis
+- **pgAdmin 4**: PostgreSQL database management
+- **Python**: Statistical analysis and visualization
+- **Google Colab**: Python development environment
+- **Pandas**: Data manipulation
+- **NumPy**: Numerical computing
+- **Matplotlib / Seaborn**: Data visualization
+- **Statsmodels**: Regression modeling and statistical diagnostics
+- **Scikit-learn**: Model performance metrics
+- **GitHub**: Version control and project documentation
 
 ---
 
-## How to Reproduce
+## Project Workflow
 
-1. **Install Python dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. **Set up the database:** create a PostgreSQL database and run the SQL files in order:
-   ```bash
-   psql -d <your_database> -f sql/00_create_table.sql
-   psql -d <your_database> -f sql/01_data_exploration.sql
-   psql -d <your_database> -f sql/02_eda.sql
-   psql -d <your_database> -f sql/03_analysis.sql
-   ```
-   `00_create_table.sql` creates the `gym_members` table and loads `data/gym_members_exercise_tracking-selected-columns.csv`.
-3. **Run the Python analysis:** open `python/fitness_calorie_analysis.ipynb` in Google Colab (badge above) or locally in Jupyter, and run all cells. The notebook reads the CSV from `data/`.
+### 1. Data Quality Checks
+
+`sql/01_data_exploration.sql`
+
+The dataset was imported into PostgreSQL and stored in the `gym_members` table.
+
+Initial checks included:
+
+- Number of records
+- Missing-value checks
+- Overall summary of calories burned (average, minimum, maximum)
+
+The dataset contained **973 records**, with no missing values in the variables used for analysis.
+
+### 2. SQL Exploratory Analysis
+
+`sql/02_eda.sql` and `sql/03_analysis.sql`
+
+SQL was used to investigate relationships between calorie expenditure and several variables:
+
+- Calorie expenditure by workout type
+- Calorie expenditure by session duration
+- Calorie expenditure by heart-rate category
+- Pearson correlations with calorie expenditure
+- Comparisons of workout types across participant characteristics
+- Correlation between session duration and average BPM
+
+### 3. Python Exploratory Data Analysis
+
+`python/fitness_calorie_analysis.ipynb`
+
+Python was used to visualize relationships between calorie expenditure and key variables:
+
+- Session duration vs. calories burned
+- Average BPM vs. calories burned
+- Average calories burned by workout type
+- Correlation analysis
+
+### 4. Multiple Linear Regression
+
+A multiple linear regression model was developed to examine the association between calorie expenditure and session duration, average BPM, weight, age, and workout type.
+
+HC3 robust standard errors were used because diagnostic testing indicated heteroskedasticity.
+
+### 5. Model Diagnostics
+
+- Breusch-Pagan test for heteroskedasticity
+- Variance Inflation Factors (VIF)
+- Residual analysis
+- Wald test for the overall Workout Type effect
+
+### 6. Model Performance
+
+Model performance was evaluated using R², Mean Absolute Error (MAE), and Root Mean Squared Error (RMSE). These metrics are based on the same data used to fit the model and are therefore **in-sample metrics**.
 
 ---
 
 ## SQL Analysis
 
-PostgreSQL was used for the initial exploratory analysis.
+### Workout Type
 
-The SQL analysis examined:
+Average calorie expenditure by workout type:
 
-- Dataset size and data completeness
-- Average calorie expenditure by workout type
-- Calorie expenditure across session-duration groups
-- Calorie expenditure across heart-rate groups
-- Correlations between numerical variables
-- Differences in workout characteristics across workout types
+| Workout Type | Records | Avg. Calories |
+|---|---:|---:|
+| HIIT | 221 | 925.81 |
+| Strength | 258 | 910.70 |
+| Yoga | 239 | 903.19 |
+| Cardio | 255 | 884.51 |
 
-### Group Definitions
+These are raw group averages and do not control for other variables.
 
-The duration and heart-rate groups use fixed cutoffs chosen for readability, not derived from the data:
+### Session Duration
 
-| Variable | Low | Medium | High |
-| --- | --- | --- | --- |
-| Session duration | < 0.75 h (Short) | 0.75 to < 1.25 h (Medium) | ≥ 1.25 h (Long) |
-| Average BPM | < 110 (Low) | 110 to < 130 (Medium) | ≥ 130 (High) |
+Session duration was grouped into three categories:
 
-[TODO: add one line on why these cutoffs were chosen, or switch to tertiles using `NTILE(3)`.] Results can change with different cutoffs.
+- **Short:** less than 0.75 hours
+- **Medium:** 0.75 to less than 1.25 hours
+- **Long:** 1.25 hours or more
 
-### Key SQL Findings
+| Duration | Records | Avg. Calories |
+|---|---:|---:|
+| Long | 508 | 1097.76 |
+| Medium | 380 | 750.75 |
+| Short | 85 | 447.41 |
 
-| Variable | Correlation with Calories Burned |
-| --- | --- |
+Longer sessions had substantially higher average calorie expenditure in the dataset.
+
+### Heart-Rate Categories
+
+Average heart rate was grouped using fixed thresholds: **Low** (below 110 bpm), **Medium** (110 to below 130 bpm), and **High** (130 bpm or above).
+
+| Heart-Rate Category | Records | Avg. Calories |
+|---|---:|---:|
+| High | 775 | 935.62 |
+| Medium | 198 | 787.21 |
+| Low | 0 | n/a |
+
+No records fell into the Low category, and about 80% fall into High, so these groups are highly unbalanced. The correlation analysis below gives a more informative picture of the heart-rate relationship.
+
+### Correlations
+
+Pearson correlations with calorie expenditure were calculated for several numerical variables:
+
+| Variable | Correlation with Calories |
+|---|---:|
 | Session Duration | **0.908** |
-| Average BPM | **0.340** |
+| Avg BPM | **0.340** |
 | Weight | **0.095** |
 | Max BPM | **0.002** |
 
-Session duration had the strongest bivariate association with calorie expenditure. The correlation between session duration and average BPM was [TODO: add the result of the query in `03_analysis.sql`].
+Session duration had the strongest bivariate association with calorie expenditure.
 
-Average calories by workout type:
-
-| Workout Type | Average Calories |
-| --- | --- |
-| HIIT | 925.81 |
-| Strength | 910.70 |
-| Yoga | 903.19 |
-| Cardio | 884.51 |
-
-The differences between workout types are small relative to the overall spread in calories burned.
+The correlation between session duration and average BPM was **0.016**, indicating that the two variables were nearly uncorrelated in this dataset.
 
 ---
 
-## Statistical Modeling
+## Multiple Linear Regression
 
-A multiple linear regression model was used to examine the association between calorie expenditure and several predictors simultaneously.
+The final regression model was:
 
-### Predictors
-
-- Session duration (hours)
-- Average BPM (beats per minute)
-- Weight (kg)
-- Age (years)
-- Workout type (categorical; reference category: [TODO: state the reference category])
-
-The model used **HC3 heteroskedasticity-robust standard errors** because diagnostic testing indicated heteroskedasticity.
+```text
+Calories Burned ~ Session Duration + Avg BPM + Weight + Age + Workout Type
+```
 
 ### Regression Results
 
-Coefficients are expressed in calories, holding the other predictors constant.
+Coefficients are in calories, holding the other predictors constant. Test statistics are Wald tests using HC3 robust standard errors.
 
-| Predictor | Interpretation | Coefficient | 95% CI | p-value |
-| --- | --- | --- | --- | --- |
-| Session Duration | calories per additional hour | 716.38 | [TODO] | [TODO] |
-| Average BPM | calories per additional bpm | 6.26 | [TODO] | [TODO] |
-| Weight | calories per additional kg | 1.28 | [TODO] | [TODO] |
-| Age | calories per additional year | -3.24 | [TODO] | [TODO] |
+| Predictor | Interpretation | Coefficient | Wald χ² (df = 1) | p-value |
+|---|---|---:|---:|---|
+| Session Duration | calories per additional hour | 716.38 | 13,377.1 | < 0.001 |
+| Avg BPM | calories per additional bpm | 6.26 | 2,261.2 | < 0.001 |
+| Weight | calories per additional kg | 1.28 | 354.9 | < 0.001 |
+| Age | calories per additional year | -3.24 | 623.6 | < 0.001 |
 
-**Workout type** was assessed with a joint test of all workout-type coefficients (Wald/F-test), rather than judging each dummy variable separately: F([TODO]) = [TODO], p = [TODO]. [TODO: if this test has not been run yet, run it, for example with `model.wald_test` on the dummy terms or by comparing nested models with `anova_lm`, and report the result here. Only describe workout type as "not significant" if the joint test supports it.]
+**Workout Type** was tested jointly across all of its categories (Wald test): χ²(3) = 0.72, p = 0.87. There is no evidence that workout type is associated with calorie expenditure after controlling for the other variables.
 
-### Model Performance
+### Model Diagnostics
 
-In-sample (fit and evaluated on the same data):
+- **Heteroskedasticity:** A Breusch-Pagan test indicated significant heteroskedasticity. HC3 robust standard errors were used for inference. The residuals vs. predicted values plot showed increasing spread at higher predicted calorie values, consistent with this result.
+- **Multicollinearity:** VIFs were approximately 1 for the numerical predictors, indicating little to no multicollinearity. This is consistent with the near-zero correlation between session duration and average BPM.
+
+### Model Performance (in-sample)
 
 - **R²:** 0.962
 - **MAE:** 41.90 calories
 - **RMSE:** 52.86 calories
 
-Out-of-sample (5-fold cross-validation):
-
-- **R²:** [TODO]
-- **MAE:** [TODO]
-- **RMSE:** [TODO]
-
-[TODO: run cross-validation or a train/test split and fill in these values. In-sample metrics can overstate how well the model predicts new data.]
-
----
-
-## Model Diagnostics
-
-A Breusch-Pagan test indicated significant heteroskedasticity in the residuals. HC3 robust standard errors were therefore used for statistical inference.
-
-Variance Inflation Factors (VIFs) were approximately 1 for the numerical predictors, indicating no meaningful multicollinearity.
-
-The residual plot showed increasing residual spread at higher predicted calorie values, consistent with the Breusch-Pagan result. Robust standard errors correct the inference but not the underlying pattern; a log-transformed outcome or weighted least squares could be explored as alternatives. [TODO: mention if you tried either.]
-
 ---
 
 ## Key Findings
 
-1. **Session duration had the strongest bivariate association with calorie expenditure** (correlation 0.908). In the regression, each additional hour was associated with roughly 716 more calories, holding the other variables constant.
-2. **Average heart rate** showed a moderate positive bivariate association (0.340) and a positive association in the regression (about 6.3 calories per bpm).
-3. **Weight** had a weaker positive association (about 1.3 calories per kg in the regression).
+1. **Session duration had the strongest association with calorie expenditure** (correlation 0.908). Each additional hour was associated with roughly 716 more calories, holding the other variables constant.
+2. **Average heart rate** was moderately associated with calories burned (correlation 0.340) and positively associated in the regression (about 6.3 calories per bpm).
+3. **Weight** was weakly positively associated (about 1.3 calories per kg in the regression).
 4. **Age** was negatively associated with calorie expenditure (about 3.2 fewer calories per year) after controlling for the other variables.
-5. Raw average calories were similar across workout types.
-6. [TODO: update to match the joint test result for workout type.]
-7. The model explained approximately **96.2% of the variation** in calorie expenditure in-sample. [TODO: add the cross-validated figure.]
+5. **Workout type was not significantly associated with calorie expenditure** after controlling for the other predictors (joint Wald test p = 0.87). Raw averages ranged only from about 885 to 926 calories.
+6. The model explained approximately **96.2% of the variation** in calorie expenditure in-sample.
 
 ---
 
 ## Limitations
 
-- **Observational data.** Results are associations, not causal effects. For example, heart rate is partly a consequence of exercise intensity, so it should not be read as a lever that independently raises calorie burn.
-- **Possibly synthetic data.** The dataset is not documented as real measurements and is widely believed to be synthetic. The very high R² and near-zero multicollinearity are consistent with that. Findings may reflect how the data was generated and should not be generalized to real exercise populations.
-- **In-sample metrics.** R², MAE, and RMSE above are calculated on the data used to fit the model unless the cross-validated results are filled in.
-- **Omitted variables.** Only a subset of the dataset's columns was used. Excluded variables (such as `Max_BPM` and [TODO: other excluded columns]) could change the estimated coefficients.
-- **Arbitrary group cutoffs.** The duration and heart-rate groups in the SQL analysis use fixed thresholds, and the group averages depend on them.
-- **Measurement.** Calories burned and heart rate are presumably device-estimated or generated, not directly measured. [TODO: confirm from the dataset documentation.]
-- **Heteroskedasticity.** Residual spread grows at higher predicted values. Robust standard errors address inference, but prediction intervals from a standard OLS model would be unreliable.
+- **Observational data.** Results are associations, not causal effects. Heart rate, for example, is partly a consequence of exercise intensity, so it should not be read as an independent lever on calorie burn.
+- **In-sample performance.** R², MAE, and RMSE were calculated on the data used to fit the model. They do not measure how well the model would predict new data.
+- **Data provenance.** The dataset's origin is not documented, and its unusually clean statistics suggest caution. Findings should not be generalized to real exercise populations.
+- **Omitted variables.** Gender, height, maximum BPM, and resting BPM were not included in the regression, and could change the estimated coefficients.
+- **Fixed cutoffs.** The duration and heart-rate categories in the SQL analysis use fixed thresholds, and the group averages depend on them.
 
 ---
 
-## Files
+## Repository Structure
 
-- [`sql/00_create_table.sql`](sql/00_create_table.sql): Table definition and data load
-- [`sql/01_data_exploration.sql`](sql/01_data_exploration.sql): Data quality and initial exploration
-- [`sql/02_eda.sql`](sql/02_eda.sql): Exploratory SQL analysis
-- [`sql/03_analysis.sql`](sql/03_analysis.sql): Additional SQL analysis
-- [`python/fitness_calorie_analysis.ipynb`](python/fitness_calorie_analysis.ipynb): Python visualization, regression, diagnostics, and modeling
-- [`visualizations/`](visualizations/): Saved figures from the analysis
-- [`requirements.txt`](requirements.txt): Python dependencies
-
-## Project Structure
-
-```
+```text
 fitness-calorie-analysis/
 ├── data/
 │   └── gym_members_exercise_tracking-selected-columns.csv
 ├── sql/
-│   ├── 00_create_table.sql
 │   ├── 01_data_exploration.sql
 │   ├── 02_eda.sql
 │   └── 03_analysis.sql
 ├── python/
 │   └── fitness_calorie_analysis.ipynb
-├── visualizations/
 ├── .gitignore
 ├── LICENSE
-├── README.md
-└── requirements.txt
+└── README.md
 ```
 
-## License & Data Attribution
-
-The code in this repository is released under the [MIT License](LICENSE). The MIT license covers the code only. The dataset is subject to its own license and terms: [TODO: add dataset license and attribution from the Kaggle page].
+The code in this repository is released under the [MIT License](LICENSE). The dataset has its own license, listed on its Kaggle page.
