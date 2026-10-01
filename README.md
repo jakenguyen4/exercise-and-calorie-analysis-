@@ -112,7 +112,7 @@ The residual plot showed increasing residual spread at higher predicted calorie 
 2. **Average heart rate showed a moderate positive association** with calorie expenditure.
 3. **Weight had a weaker positive association** with calorie expenditure.
 4. Workout types had relatively similar raw average calorie expenditures.
-5. After controlling for the other variables, **session duration, average BPM, weight, and age were statistically significant predictors** in the regression model.
+5. After controlling for the other variables, **session duration, average BPM, weight, and age showed statistically significant associations with calorie expenditure** in the regression model.
 6. **Workout type was not statistically significant** after controlling for the other predictors.
 7. The regression model explained **96.2% of the observed variation** in calorie expenditure.
 
